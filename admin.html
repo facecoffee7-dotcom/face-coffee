@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Face Coffee — Admin</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  header{
+    background:var(--bg-alt); border-bottom:1px solid var(--line);
+    padding:0 24px; height:66px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+  }
+  .logo{font-family:'Fraunces',serif; font-weight:600; font-size:17px; display:flex; align-items:center; gap:8px;}
+  .logo span{color:var(--gold); font-style:italic; font-weight:400; font-size:12px;}
+  .head-actions{display:flex; gap:10px; align-items:center;}
+  .head-actions a{font-size:13px; color:var(--cream-dim); text-decoration:none;}
+  .head-actions a:hover{color:var(--gold);}
+
+  .toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 24px; border-bottom:1px solid var(--line); flex-wrap:wrap; gap:12px;
+  }
+  .toolbar h1{font-size:19px;}
+  .toolbar .sub{font-size:12.5px; color:var(--cream-faint); margin-top:4px;}
+
+  .board{display:flex; gap:16px; padding:24px; overflow-x:auto; align-items:flex-start;}
+  .column{
+    background:var(--bg-alt); border:1px solid var(--line); border-radius:4px;
+    width:270px; flex-shrink:0; display:flex; flex-direction:column; max-height:calc(100vh - 220px);
+  }
+  .column.drag-over{border-color:var(--gold);}
+  .col-head{
+    padding:14px 14px 10px; border-bottom:1px solid var(--line); cursor:grab;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:6px;
+  }
+  .col-head:active{cursor:grabbing;}
+  .col-title{display:flex; align-items:center; gap:8px; font-weight:600; font-size:14.5px; flex:1;}
+  .col-title input{
+    background:none; border:none; padding:2px 0; font-weight:600; font-size:14.5px; color:var(--cream); width:100%;
+  }
+  .col-title input:focus{outline:none; border-bottom:1px solid var(--gold);}
+  .col-count{font-family:'Space Mono',monospace; font-size:10.5px; color:var(--cream-faint); margin-top:2px;}
+  .col-menu-btn{background:none; border:none; color:var(--cream-faint); font-size:16px; padding:2px 4px;}
+  .col-menu-btn:hover{color:var(--red);}
+
+  .col-body{padding:10px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px; min-height:60px;}
+  .p-card{
+    background:var(--card); border:1px solid var(--line); border-radius:3px; padding:10px;
+    display:flex; gap:10px; cursor:grab; align-items:center;
+  }
+  .p-card:active{cursor:grabbing;}
+  .p-card.dragging{opacity:0.35;}
+  .p-card.inactive{opacity:0.45;}
+  .p-card-img{
+    width:40px; height:40px; border-radius:3px; flex-shrink:0; overflow:hidden;
+    background:linear-gradient(150deg, rgba(200,163,85,0.18), rgba(0,0,0,0.2));
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .p-card-img img{width:100%; height:100%; object-fit:cover;}
+  .p-card-info{flex:1; min-width:0;}
+  .p-card-info h4{font-size:13px; font-weight:500; font-family:'Inter',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .p-card-info .mono{font-size:11.5px; color:var(--gold);}
+
+  .add-product-btn{
+    margin:6px 10px 12px; background:none; border:1px dashed var(--line-strong); color:var(--cream-faint);
+    border-radius:3px; padding:9px; font-size:12.5px; text-align:center;
+  }
+  .add-product-btn:hover{border-color:var(--gold); color:var(--gold);}
+
+  .add-col{
+    width:230px; flex-shrink:0; border:1px dashed var(--line-strong); border-radius:4px;
+    display:flex; align-items:center; justify-content:center; min-height:80px; color:var(--cream-faint); font-size:13.5px;
+  }
+  .add-col:hover{border-color:var(--gold); color:var(--gold);}
+
+  /* MODAL */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:none;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--bg-alt); border:1px solid var(--line-strong); border-radius:4px;
+    width:100%; max-width:440px; padding:26px; max-height:88vh; overflow-y:auto;
+  }
+  .modal h3{font-size:18px; margin-bottom:18px;}
+  .field{margin-bottom:16px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .img-preview{
+    width:100%; aspect-ratio:16/9; border-radius:3px; margin-top:8px; overflow:hidden;
+    background:linear-gradient(150deg, rgba(200,163,85,0.18), rgba(0,0,0,0.2));
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+  }
+  .img-preview img{width:100%; height:100%; object-fit:cover;}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .switch{position:relative; width:40px; height:22px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{position:absolute; inset:0; background:var(--line-strong); border-radius:999px; transition:.2s; cursor:pointer;}
+  .slider::before{content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:var(--cream); border-radius:50%; transition:.2s;}
+  input:checked + .slider{background:var(--gold);}
+  input:checked + .slider::before{transform:translateX(18px); background:var(--bg);}
+  .modal-actions{display:flex; justify-content:space-between; margin-top:22px; gap:10px;}
+  .modal-actions .left{display:flex; gap:10px;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--gold); color:var(--bg); padding:10px 20px; border-radius:999px; font-size:13px; font-weight:600;
+    transition:all .25s ease; z-index:300; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">☕ FACE COFFEE <span>admin</span></div>
+  <div class="head-actions">
+    <a href="index.html" target="_blank">Ver menú público ↗</a>
+    <button class="btn btn-ghost" id="settings-btn">⚙ Configuración</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div>
+    <h1>Tablero de menú</h1>
+    <div class="sub">Arrastra tarjetas para reordenar o cambiar de categoría. Los cambios se guardan al instante.</div>
+  </div>
+  <button class="btn btn-primary" id="add-category-btn">+ Nueva categoría</button>
+</div>
+
+<div class="board" id="board"></div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h3 id="pm-title">Editar producto</h3>
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="pm-name" placeholder="Ej. Espresso de finca">
+    </div>
+    <div class="field">
+      <label>Descripción</label>
+      <textarea id="pm-desc" rows="2" placeholder="Breve descripción del producto"></textarea>
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Precio (USD)</label>
+        <input type="number" id="pm-price" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div>
+        <label>Categoría</label>
+        <select id="pm-category"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>URL de imagen (opcional)</label>
+      <input type="text" id="pm-image" placeholder="https://...">
+      <div class="img-preview" id="pm-preview">☕</div>
+    </div>
+    <div class="toggle-row">
+      <label style="margin:0;">Visible en el menú público</label>
+      <label class="switch"><input type="checkbox" id="pm-active" checked><span class="slider"></span></label>
+    </div>
+    <div class="modal-actions">
+      <div class="left">
+        <button class="btn btn-ghost" id="pm-cancel">Cancelar</button>
+        <button class="btn btn-danger" id="pm-delete" style="display:none;">Eliminar</button>
+      </div>
+      <button class="btn btn-primary" id="pm-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CATEGORÍA -->
+<div class="modal-overlay" id="category-modal">
+  <div class="modal">
+    <h3>Nueva categoría</h3>
+    <div class="field field-row">
+      <div>
+        <label>Ícono (emoji)</label>
+        <input type="text" id="cm-icon" placeholder="🍽️" maxlength="4">
+      </div>
+      <div>
+        <label>Nombre</label>
+        <input type="text" id="cm-name" placeholder="Ej. Postres">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cm-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="cm-save">Crear categoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>Configuración del negocio</h3>
+    <div class="field">
+      <label>Número de WhatsApp (código país + número, sin +)</label>
+      <input type="text" id="sm-whatsapp" placeholder="593999999999">
+    </div>
+    <div class="field">
+      <label>Nombre del negocio</label>
+      <input type="text" id="sm-name">
+    </div>
+    <div class="field">
+      <label>Frase / tagline del hero</label>
+      <input type="text" id="sm-tagline">
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Dirección</label>
+        <input type="text" id="sm-address">
+      </div>
+      <div>
+        <label>Horario</label>
+        <input type="text" id="sm-hours">
+      </div>
+    </div>
+    <div class="field">
+      <label>Instagram</label>
+      <input type="text" id="sm-instagram">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="sm-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="sm-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="firebase-config.js"></script>
+<script type="module" src="firebase-sync.js"></script>
+<script type="module">
+async function boot(){
+  if (window.FCSync) { await window.FCSync.init(); }
+  let data = FCData.loadData();
+  let editingProductId = null;
+  let draggedProduct = null;
+  let draggedColumn = null;
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+
+  function renderBoard(){
+    data = FCData.loadData();
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    const cats = [...data.categories].sort((a,b)=>a.order-b.order);
+
+    cats.forEach(cat=>{
+      const prods = data.products.filter(p=>p.categoryId===cat.id).sort((a,b)=>a.order-b.order);
+      const col = document.createElement('div');
+      col.className = 'column';
+      col.dataset.catId = cat.id;
+      col.draggable = false;
+      col.innerHTML = `
+        <div class="col-head" draggable="true">
+          <div>
+            <div class="col-title"><span>${cat.icon}</span><input type="text" value="${cat.name}" data-cat="${cat.id}"></div>
+            <div class="col-count">${prods.length} producto${prods.length!==1?'s':''}</div>
+          </div>
+          <button class="col-menu-btn" title="Eliminar categoría" data-del-cat="${cat.id}">🗑</button>
+        </div>
+        <div class="col-body" data-cat="${cat.id}"></div>
+        <button class="add-product-btn" data-add-to="${cat.id}">+ Producto</button>
+      `;
+      const body = col.querySelector('.col-body');
+      prods.forEach(p=>{
+        const card = document.createElement('div');
+        card.className = 'p-card' + (p.active?'':' inactive');
+        card.draggable = true;
+        card.dataset.id = p.id;
+        card.innerHTML = `
+          <div class="p-card-img">${p.image?`<img src="${p.image}">`:'☕'}</div>
+          <div class="p-card-info"><h4>${p.name}</h4><span class="mono">${'$'+Number(p.price).toFixed(2)}</span></div>
+        `;
+        card.addEventListener('click', ()=>openProductModal(p.id));
+        card.addEventListener('dragstart', (e)=>{
+          draggedProduct = p.id; card.classList.add('dragging');
+        });
+        card.addEventListener('dragend', ()=>{ card.classList.remove('dragging'); draggedProduct=null; renderBoard(); });
+        body.appendChild(card);
+      });
+
+      body.addEventListener('dragover', (e)=>{
+        e.preventDefault();
+        col.classList.add('drag-over');
+        const after = getDragAfterElement(body, e.clientY);
+        const dragging = document.querySelector('.p-card.dragging');
+        if(!dragging) return;
+        if(after==null) body.appendChild(dragging);
+        else body.insertBefore(dragging, after);
+      });
+      body.addEventListener('dragleave', ()=> col.classList.remove('drag-over'));
+      body.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        col.classList.remove('drag-over');
+        if(!draggedProduct) return;
+        const orderedIds = [...body.querySelectorAll('.p-card')].map(c=>c.dataset.id);
+        const originCat = data.products.find(p=>p.id===draggedProduct).categoryId;
+        if(originCat !== cat.id){
+          const idx = orderedIds.indexOf(draggedProduct);
+          FCData.moveProductToCategory(draggedProduct, cat.id, idx);
+        } else {
+          FCData.reorderProductsInCategory(cat.id, orderedIds);
+        }
+      });
+
+      col.querySelector('.col-head').addEventListener('dragstart', (e)=>{
+        draggedColumn = cat.id;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      col.addEventListener('dragover', (e)=>{
+        if(draggedColumn && draggedColumn!==cat.id) e.preventDefault();
+      });
+      col.addEventListener('drop', (e)=>{
+        if(!draggedColumn || draggedColumn===cat.id) return;
+        e.preventDefault();
+        const ids = [...data.categories].sort((a,b)=>a.order-b.order).map(c=>c.id);
+        const from = ids.indexOf(draggedColumn);
+        const to = ids.indexOf(cat.id);
+        ids.splice(from,1); ids.splice(to,0,draggedColumn);
+        FCData.reorderCategories(ids);
+        draggedColumn = null;
+        renderBoard();
+      });
+
+      col.querySelector('input[data-cat]').addEventListener('change', (e)=>{
+        FCData.updateCategory(cat.id, {name:e.target.value});
+        toast('Categoría actualizada');
+      });
+      col.querySelector('[data-del-cat]').addEventListener('click', ()=>{
+        if(confirm(`¿Eliminar la categoría "${cat.name}" y sus ${prods.length} productos? Esta acción no se puede deshacer.`)){
+          FCData.deleteCategory(cat.id);
+          renderBoard();
+          toast('Categoría eliminada');
+        }
+      });
+      col.querySelector('[data-add-to]').addEventListener('click', ()=> openProductModal(null, cat.id));
+
+      board.appendChild(col);
+    });
+
+    const addCol = document.createElement('div');
+    addCol.className = 'add-col';
+    addCol.textContent = '+ Agregar categoría';
+    addCol.addEventListener('click', openCategoryModal);
+    board.appendChild(addCol);
+  }
+
+  function getDragAfterElement(container, y){
+    const els = [...container.querySelectorAll('.p-card:not(.dragging)')];
+    return els.reduce((closest, child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height/2;
+      if(offset<0 && offset>closest.offset) return {offset, element:child};
+      return closest;
+    }, {offset:-Infinity}).element;
+  }
+
+  // ---------- MODAL PRODUCTO ----------
+  const pModal = document.getElementById('product-modal');
+  function openProductModal(id, presetCategoryId){
+    editingProductId = id;
+    const catSelect = document.getElementById('pm-category');
+    catSelect.innerHTML = data.categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+
+    if(id){
+      const p = data.products.find(p=>p.id===id);
+      document.getElementById('pm-title').textContent = 'Editar producto';
+      document.getElementById('pm-name').value = p.name;
+      document.getElementById('pm-desc').value = p.description||'';
+      document.getElementById('pm-price').value = p.price;
+      document.getElementById('pm-image').value = p.image||'';
+      document.getElementById('pm-active').checked = p.active;
+      catSelect.value = p.categoryId;
+      document.getElementById('pm-delete').style.display = 'inline-block';
+    } else {
+      document.getElementById('pm-title').textContent = 'Nuevo producto';
+      document.getElementById('pm-name').value = '';
+      document.getElementById('pm-desc').value = '';
+      document.getElementById('pm-price').value = '';
+      document.getElementById('pm-image').value = '';
+      document.getElementById('pm-active').checked = true;
+      catSelect.value = presetCategoryId || data.categories[0]?.id;
+      document.getElementById('pm-delete').style.display = 'none';
+    }
+    updateImgPreview();
+    pModal.classList.add('open');
+  }
+  function updateImgPreview(){
+    const url = document.getElementById('pm-image').value.trim();
+    const prev = document.getElementById('pm-preview');
+    prev.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='☕'">` : '☕';
+  }
+  document.getElementById('pm-image').addEventListener('input', updateImgPreview);
+  document.getElementById('pm-cancel').addEventListener('click', ()=> pModal.classList.remove('open'));
+  document.getElementById('pm-save').addEventListener('click', ()=>{
+    const name = document.getElementById('pm-name').value.trim();
+    if(!name){ toast('El nombre es obligatorio'); return; }
+    const payload = {
+      name,
+      description: document.getElementById('pm-desc').value.trim(),
+      price: parseFloat(document.getElementById('pm-price').value) || 0,
+      image: document.getElementById('pm-image').value.trim(),
+      active: document.getElementById('pm-active').checked,
+      categoryId: document.getElementById('pm-category').value,
+    };
+    if(editingProductId){
+      FCData.updateProduct(editingProductId, payload);
+      toast('Producto actualizado');
+    } else {
+      FCData.addProduct(payload.categoryId, payload);
+      toast('Producto creado');
+    }
+    pModal.classList.remove('open');
+    renderBoard();
+  });
+  document.getElementById('pm-delete').addEventListener('click', ()=>{
+    if(confirm('¿Eliminar este producto?')){
+      FCData.deleteProduct(editingProductId);
+      pModal.classList.remove('open');
+      renderBoard();
+      toast('Producto eliminado');
+    }
+  });
+
+  // ---------- MODAL CATEGORÍA ----------
+  const cModal = document.getElementById('category-modal');
+  function openCategoryModal(){
+    document.getElementById('cm-icon').value = '';
+    document.getElementById('cm-name').value = '';
+    cModal.classList.add('open');
+  }
+  document.getElementById('add-category-btn').addEventListener('click', openCategoryModal);
+  document.getElementById('cm-cancel').addEventListener('click', ()=> cModal.classList.remove('open'));
+  document.getElementById('cm-save').addEventListener('click', ()=>{
+    const name = document.getElementById('cm-name').value.trim();
+    if(!name){ toast('El nombre es obligatorio'); return; }
+    const icon = document.getElementById('cm-icon').value.trim() || '🍽️';
+    FCData.addCategory(name, icon);
+    cModal.classList.remove('open');
+    renderBoard();
+    toast('Categoría creada');
+  });
+
+  // ---------- MODAL CONFIGURACIÓN ----------
+  const sModal = document.getElementById('settings-modal');
+  document.getElementById('settings-btn').addEventListener('click', ()=>{
+    const s = FCData.loadSettings();
+    document.getElementById('sm-whatsapp').value = s.whatsapp;
+    document.getElementById('sm-name').value = s.businessName;
+    document.getElementById('sm-tagline').value = s.tagline;
+    document.getElementById('sm-address').value = s.address;
+    document.getElementById('sm-hours').value = s.hours;
+    document.getElementById('sm-instagram').value = s.instagram;
+    sModal.classList.add('open');
+  });
+  document.getElementById('sm-cancel').addEventListener('click', ()=> sModal.classList.remove('open'));
+  document.getElementById('sm-save').addEventListener('click', ()=>{
+    FCData.saveSettings({
+      whatsapp: document.getElementById('sm-whatsapp').value.trim().replace(/\D/g,''),
+      businessName: document.getElementById('sm-name').value.trim(),
+      tagline: document.getElementById('sm-tagline').value.trim(),
+      address: document.getElementById('sm-address').value.trim(),
+      hours: document.getElementById('sm-hours').value.trim(),
+      instagram: document.getElementById('sm-instagram').value.trim(),
+    });
+    sModal.classList.remove('open');
+    toast('Configuración guardada');
+  });
+
+  [pModal, cModal, sModal].forEach(m=>{
+    m.addEventListener('click', (e)=>{ if(e.target===m) m.classList.remove('open'); });
+  });
+
+  renderBoard();
+}
+boot();
+</script>
+</body>
+</html>
