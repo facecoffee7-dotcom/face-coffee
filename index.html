@@ -37,6 +37,40 @@
     background:var(--gold); color:var(--bg); border-radius:999px; font-size:11px; font-weight:700;
     padding:1px 7px; font-family:'Space Mono',monospace;
   }
+  .perk-btn{
+    background:none; border:1px solid var(--line-strong); color:var(--cream-dim);
+    border-radius:999px; padding:9px 14px; font-size:12.5px; font-weight:600; white-space:nowrap;
+  }
+  .perk-btn:hover{border-color:var(--gold); color:var(--gold);}
+  @media(max-width:820px){ .perk-btn span.perk-label{display:none;} .perk-btn{padding:9px 11px;} }
+
+  /* MODALES (cupón / fidelidad) */
+  .fc-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:none;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .fc-modal-overlay.open{display:flex;}
+  .fc-modal{
+    background:var(--bg-alt); border:1px solid var(--line-strong); border-radius:6px;
+    width:100%; max-width:420px; padding:26px; max-height:88vh; overflow-y:auto;
+  }
+  .fc-modal h3{font-size:19px; margin-bottom:6px; font-family:'Fraunces',serif;}
+  .fc-modal .fc-desc{color:var(--cream-dim); font-size:13.5px; line-height:1.6; margin-bottom:18px;}
+  .fc-modal .field{margin-bottom:14px;}
+  .fc-modal label{font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--cream-faint); display:block; margin-bottom:6px;}
+  .fc-modal input{
+    background:var(--bg); border:1px solid var(--line-strong); color:var(--cream);
+    padding:10px 12px; border-radius:3px; font-size:14px; width:100%;
+  }
+  .fc-modal input:focus{outline:1px solid var(--gold);}
+  .fc-modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
+  .fc-msg{font-size:12.5px; margin-top:10px; min-height:16px;}
+  .fc-msg.ok{color:var(--green);}
+  .fc-msg.err{color:var(--red);}
+  .fc-stamp-result{
+    margin-top:14px; padding:14px; background:var(--card); border-radius:4px; text-align:center;
+    font-family:'Space Mono',monospace; color:var(--gold); font-size:14px; display:none;
+  }
 
   /* HERO — estilo Apple, parallax */
   .hero{
@@ -224,9 +258,13 @@
       <span>🔍</span>
       <input type="text" id="search-input" placeholder="Buscar en el menú...">
     </div>
-    <button class="cart-btn" id="cart-toggle">
-      🛒 Pedido <span class="cart-count mono" id="cart-count">0</span>
-    </button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="perk-btn" id="coupon-btn">🎟 <span class="perk-label">Cupón</span></button>
+      <button class="perk-btn" id="loyalty-btn">⭐ <span class="perk-label">Fidelidad</span></button>
+      <button class="cart-btn" id="cart-toggle">
+        🛒 Pedido <span class="cart-count mono" id="cart-count">0</span>
+      </button>
+    </div>
   </nav>
 </header>
 
@@ -290,20 +328,66 @@
   </div>
   <div class="drawer-items" id="drawer-items"></div>
   <div class="drawer-foot">
+    <div class="field" id="coupon-applied-row" style="display:none; margin-bottom:10px;">
+      <div class="drawer-total" style="color:var(--green); font-size:13px;"><span id="coupon-applied-label">Cupón aplicado</span><span class="mono" id="coupon-applied-amount">−$0.00</span></div>
+    </div>
     <div class="drawer-total"><span>Total</span><b class="mono" id="drawer-total">$0.00</b></div>
+    <div class="field" style="margin-bottom:12px;">
+      <input type="tel" id="cart-phone" placeholder="Tu WhatsApp (opcional, para sumar sellos)">
+    </div>
     <button class="btn btn-primary" id="checkout-btn">Pedir por WhatsApp →</button>
     <div class="wa-note" id="wa-note" style="display:none;">Configura el número de WhatsApp en el panel administrativo.</div>
   </div>
 </div>
 
-<script src="data.js"></script>
-<script src="firebase-config.js"></script>
-<script type="module" src="firebase-sync.js"></script>
+<!-- MODAL CUPÓN -->
+<div class="fc-modal-overlay" id="coupon-modal">
+  <div class="fc-modal">
+    <h3>🎟 Cupón de descuento</h3>
+    <p class="fc-desc" id="coupon-desc-text"></p>
+    <div class="field">
+      <label>Código</label>
+      <input type="text" id="coupon-input" placeholder="Ej. BIENVENIDA10" style="text-transform:uppercase;">
+    </div>
+    <div class="fc-msg" id="coupon-msg"></div>
+    <div class="fc-modal-actions">
+      <button class="btn btn-ghost" id="coupon-close">Cerrar</button>
+      <button class="btn btn-primary" id="coupon-apply">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FIDELIDAD -->
+<div class="fc-modal-overlay" id="loyalty-modal">
+  <div class="fc-modal">
+    <h3>⭐ Programa de fidelidad</h3>
+    <p class="fc-desc" id="loyalty-desc-text"></p>
+    <div class="field">
+      <label>Tu número de WhatsApp</label>
+      <input type="tel" id="loyalty-phone" placeholder="0999999999">
+    </div>
+    <div class="fc-msg" id="loyalty-msg"></div>
+    <div class="fc-stamp-result" id="loyalty-result"></div>
+    <div class="fc-modal-actions">
+      <button class="btn btn-ghost" id="loyalty-close">Cerrar</button>
+      <button class="btn btn-primary" id="loyalty-check">Consultar sellos</button>
+    </div>
+  </div>
+</div>
+
+<script defer src="data.js"></script>
+<script defer src="firebase-config.js"></script>
+<script defer src="firebase-core.js"></script>
+<script defer src="firebase-sync.js"></script>
+<script defer src="firebase-orders.js"></script>
 <script type="module">
 async function boot(){
-  if (window.FCSync) { await window.FCSync.init(); }
-  const data = FCData.loadData();
-  const settings = FCData.loadSettings();
+  // 1) Pintamos YA con lo que haya en localStorage (o los datos por defecto).
+  //    No esperamos a Firebase: eso es lo que hacía que la página se sintiera
+  //    lenta, sobre todo en celular.
+  let data = FCData.loadData();
+  let settings = FCData.loadSettings();
+  let appliedCoupon = null; // {code, type, value}
   let cart = JSON.parse(sessionStorage.getItem('fc_cart') || '{}'); // {productId: qty}
 
   document.getElementById('tagline-mini').textContent = settings.address;
@@ -450,6 +534,12 @@ async function boot(){
     sections.forEach(s=>io.observe(s));
   }
 
+  function computeDiscount(subtotal){
+    if(!appliedCoupon) return 0;
+    if(appliedCoupon.type === 'fixed') return Math.min(appliedCoupon.value, subtotal);
+    return +(subtotal * (appliedCoupon.value/100)).toFixed(2);
+  }
+
   function renderCart(){
     const items = Object.entries(cart).filter(([,qty])=>qty>0);
     const countEl = document.getElementById('cart-count');
@@ -461,11 +551,9 @@ async function boot(){
       wrap.innerHTML = '<div class="empty-cart">Tu carrito está vacío.<br>Agrega algo del menú 👆</div>';
     } else {
       wrap.innerHTML = '';
-      let total = 0;
       items.forEach(([id, qty])=>{
         const p = data.products.find(p=>p.id===id);
         if(!p) return;
-        total += p.price*qty;
         const row = document.createElement('div');
         row.className = 'cart-item';
         row.innerHTML = `
@@ -479,7 +567,6 @@ async function boot(){
         `;
         wrap.appendChild(row);
       });
-      document.getElementById('drawer-total').textContent = money(total);
       wrap.querySelectorAll('button').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const id = btn.dataset.id;
@@ -489,8 +576,17 @@ async function boot(){
         });
       });
     }
-    const total = items.reduce((s,[id,qty])=>{ const p=data.products.find(p=>p.id===id); return s + (p?p.price*qty:0); },0);
-    document.getElementById('drawer-total').textContent = money(total);
+    const subtotal = items.reduce((s,[id,qty])=>{ const p=data.products.find(p=>p.id===id); return s + (p?p.price*qty:0); },0);
+    const discount = computeDiscount(subtotal);
+    const appliedRow = document.getElementById('coupon-applied-row');
+    if(appliedCoupon && discount > 0){
+      appliedRow.style.display = 'block';
+      document.getElementById('coupon-applied-label').textContent = `Cupón ${appliedCoupon.code}`;
+      document.getElementById('coupon-applied-amount').textContent = '−' + money(discount);
+    } else {
+      appliedRow.style.display = 'none';
+    }
+    document.getElementById('drawer-total').textContent = money(Math.max(0, subtotal - discount));
     document.getElementById('checkout-btn').disabled = items.length===0;
     document.getElementById('wa-note').style.display = settings.whatsapp ? 'none' : 'block';
   }
@@ -508,19 +604,38 @@ async function boot(){
   document.getElementById('checkout-btn').addEventListener('click', ()=>{
     const items = Object.entries(cart).filter(([,qty])=>qty>0);
     if(items.length===0) return;
-    let msg = `Hola *${settings.businessName}* 👋, quiero hacer este pedido:\n\n`;
-    let total = 0;
+    let subtotal = 0;
+    const lineItems = [];
     items.forEach(([id,qty])=>{
       const p = data.products.find(p=>p.id===id);
       if(!p) return;
       const sub = p.price*qty;
-      total += sub;
-      msg += `• ${qty}x ${p.name} — ${money(sub)}\n`;
+      subtotal += sub;
+      lineItems.push({ id, name:p.name, qty, price:p.price });
     });
+    const discount = computeDiscount(subtotal);
+    const total = Math.max(0, subtotal - discount);
+    const customerPhone = document.getElementById('cart-phone').value.trim().replace(/\D/g,'');
+
+    let msg = `Hola *${settings.businessName}* 👋, quiero hacer este pedido:\n\n`;
+    lineItems.forEach(it=>{ msg += `• ${it.qty}x ${it.name} — ${money(it.price*it.qty)}\n`; });
+    if(appliedCoupon && discount>0) msg += `\nCupón ${appliedCoupon.code}: −${money(discount)}`;
     msg += `\n*Total: ${money(total)}*`;
     const phone = settings.whatsapp || '';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
+
+    // Registra el pedido para el panel de Cocina/Caja del admin (si Firebase está activo)
+    if (window.FCOrders) {
+      window.FCOrders.createOrder({
+        items: lineItems, subtotal,
+        discount, couponCode: appliedCoupon ? appliedCoupon.code : null,
+        total, phone: customerPhone || null,
+      }).catch(()=>{});
+      if (settings.loyaltyEnabled && customerPhone) {
+        window.FCOrders.addStamp(customerPhone).catch(()=>{});
+      }
+    }
   });
 
   // Search
@@ -528,11 +643,81 @@ async function boot(){
     renderMenu(e.target.value);
   });
 
+  // ---------- CUPÓN ----------
+  const couponModal = document.getElementById('coupon-modal');
+  document.getElementById('coupon-btn').addEventListener('click', ()=>{
+    document.getElementById('coupon-desc-text').textContent = settings.couponDescription || '';
+    document.getElementById('coupon-msg').textContent = '';
+    document.getElementById('coupon-input').value = appliedCoupon ? appliedCoupon.code : '';
+    couponModal.classList.add('open');
+  });
+  document.getElementById('coupon-close').addEventListener('click', ()=> couponModal.classList.remove('open'));
+  document.getElementById('coupon-apply').addEventListener('click', ()=>{
+    const code = document.getElementById('coupon-input').value;
+    const found = FCData.findActiveCoupon(code);
+    const msgEl = document.getElementById('coupon-msg');
+    if(found){
+      appliedCoupon = found;
+      msgEl.textContent = '¡Cupón aplicado! Se descontará en tu pedido.';
+      msgEl.className = 'fc-msg ok';
+      renderCart();
+    } else {
+      appliedCoupon = null;
+      msgEl.textContent = 'Ese código no existe o ya no está activo.';
+      msgEl.className = 'fc-msg err';
+      renderCart();
+    }
+  });
+
+  // ---------- FIDELIDAD ----------
+  const loyaltyModal = document.getElementById('loyalty-modal');
+  document.getElementById('loyalty-btn').addEventListener('click', ()=>{
+    const goal = settings.loyaltyStampsGoal || 10;
+    document.getElementById('loyalty-desc-text').textContent =
+      (settings.loyaltyDescription || '') + ` Junta ${goal} sellos y obtén: ${settings.loyaltyReward || ''}.`;
+    document.getElementById('loyalty-msg').textContent = '';
+    document.getElementById('loyalty-result').style.display = 'none';
+    loyaltyModal.classList.add('open');
+  });
+  document.getElementById('loyalty-close').addEventListener('click', ()=> loyaltyModal.classList.remove('open'));
+  document.getElementById('loyalty-check').addEventListener('click', async ()=>{
+    const phone = document.getElementById('loyalty-phone').value.trim().replace(/\D/g,'');
+    const msgEl = document.getElementById('loyalty-msg');
+    const resultEl = document.getElementById('loyalty-result');
+    if(!phone){ msgEl.textContent = 'Escribe tu número de WhatsApp.'; msgEl.className = 'fc-msg err'; return; }
+    if(!window.FCOrders || !FCSync.isConfigured()){
+      msgEl.textContent = 'La consulta de sellos no está disponible por ahora.';
+      msgEl.className = 'fc-msg err';
+      return;
+    }
+    msgEl.textContent = 'Consultando…'; msgEl.className = 'fc-msg';
+    const stamps = await window.FCOrders.getStamps(phone);
+    const goal = settings.loyaltyStampsGoal || 10;
+    msgEl.textContent = '';
+    resultEl.style.display = 'block';
+    resultEl.textContent = stamps >= goal
+      ? `🎉 Tienes ${stamps} sellos — ¡ya puedes canjear tu recompensa en el local!`
+      : `Tienes ${stamps} de ${goal} sellos.`;
+  });
+
+  // Refresco silencioso si Firestore trae datos nuevos (no bloquea el primer render)
+  window.addEventListener('fc-remote-ready', (e)=>{
+    if(e.detail && e.detail.changed){
+      data = FCData.loadData();
+      settings = FCData.loadSettings();
+      renderMenu(document.getElementById('search-input').value);
+      renderCart();
+    }
+  });
+
   // Live update if admin edits in another tab
   window.addEventListener('storage', ()=>{ location.reload(); });
 
   renderMenu('');
   renderCart();
+
+  // 2) Recién ahora, en segundo plano, sincronizamos con Firebase (sin await).
+  if (window.FCSync) { window.FCSync.init(); }
 }
 boot();
 </script>

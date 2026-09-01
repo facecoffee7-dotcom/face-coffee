@@ -114,6 +114,78 @@
     transition:all .25s ease; z-index:300; pointer-events:none;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* LOGIN */
+  .login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-card{
+    background:var(--bg-alt); border:1px solid var(--line-strong); border-radius:6px;
+    width:100%; max-width:360px; padding:30px;
+  }
+  .fc-msg{font-size:12.5px;}
+  .fc-msg.err{color:var(--red);}
+
+  .local-mode-banner{
+    background:rgba(200,163,85,0.12); color:var(--gold); border-bottom:1px solid var(--line-strong);
+    padding:10px 24px; font-size:12.5px; text-align:center;
+  }
+
+  /* TABS */
+  .tabs{display:flex; gap:4px; padding:14px 24px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab-btn{
+    background:none; border:none; color:var(--cream-faint); font-size:13.5px; font-weight:600;
+    padding:10px 16px; border-bottom:2px solid transparent;
+  }
+  .tab-btn:hover{color:var(--cream);}
+  .tab-btn.active{color:var(--gold); border-bottom-color:var(--gold);}
+  .tab-panel[hidden]{display:none;}
+  .panel-pad{padding:20px 24px 40px; max-width:640px;}
+
+  .simple-list{display:flex; flex-direction:column; gap:8px; margin-top:20px;}
+  .simple-item{
+    background:var(--card); border:1px solid var(--line); border-radius:4px; padding:12px 14px;
+    display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .simple-item .mono{color:var(--gold);}
+  .simple-item .actions{display:flex; gap:8px;}
+  .simple-item .actions button{background:none; border:none; color:var(--cream-faint); font-size:14px;}
+  .simple-item .actions button:hover{color:var(--gold);}
+  .simple-item .actions button.danger:hover{color:var(--red);}
+  .badge-inactive{color:var(--red); font-size:11px; font-family:'Space Mono',monospace;}
+
+  /* CAJA */
+  .cash-summary{display:flex; gap:16px; flex-wrap:wrap;}
+  .cash-card{
+    background:var(--card); border:1px solid var(--line); border-radius:5px; padding:18px 22px;
+    display:flex; flex-direction:column; gap:4px; min-width:160px;
+  }
+  .cash-label{font-size:10.5px; color:var(--cream-faint); letter-spacing:0.1em;}
+  .cash-card b{font-family:'Fraunces',serif; font-size:26px; color:var(--gold); font-weight:500;}
+  .cash-sub{font-size:11.5px; color:var(--cream-faint);}
+  .cash-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .cash-table td{padding:9px 4px; border-bottom:1px solid var(--line);}
+  .cash-table td:last-child{text-align:right; color:var(--gold); font-family:'Space Mono',monospace;}
+
+  /* COCINA */
+  #kitchen-board .column{width:280px;}
+  .order-card{
+    background:var(--card); border:1px solid var(--line); border-radius:4px; padding:10px 12px; margin-bottom:8px; font-size:12.5px;
+  }
+  .order-card .order-head{display:flex; justify-content:space-between; font-family:'Space Mono',monospace; color:var(--cream-faint); font-size:10.5px; margin-bottom:6px;}
+  .order-card ul{list-style:none; margin:0 0 8px; padding:0;}
+  .order-card li{display:flex; justify-content:space-between; padding:2px 0;}
+  .order-card .order-total{display:flex; justify-content:space-between; font-weight:700; color:var(--gold); border-top:1px solid var(--line); padding-top:6px; margin-bottom:8px;}
+  .order-card button{width:100%;}
+
+  /* DROPZONE de imagen (arrastrar y soltar) */
+  .dropzone{
+    border:1.5px dashed var(--line-strong); border-radius:4px; padding:18px; text-align:center;
+    cursor:pointer; color:var(--cream-faint); font-size:12.5px; margin-top:8px; transition:border-color .2s ease, color .2s ease;
+  }
+  .dropzone:hover, .dropzone.drag-over{border-color:var(--gold); color:var(--gold);}
+  .dropzone input{display:none;}
+  .dropzone .dz-progress{font-family:'Space Mono',monospace; font-size:11px; margin-top:4px;}
 </style>
 </head>
 <body>
@@ -134,23 +206,118 @@
   </defs>
 </svg>
 
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <form class="login-card" id="login-form">
+    <div class="logo" style="justify-content:center; margin-bottom:6px;">☕ FACE COFFEE <span>admin</span></div>
+    <p style="color:var(--cream-faint); font-size:12.5px; text-align:center; margin-bottom:20px;">Inicia sesión para administrar el menú, la cocina y la caja.</p>
+    <div class="field">
+      <label>Correo</label>
+      <input type="email" id="login-email" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" required autocomplete="current-password">
+    </div>
+    <div class="fc-msg err" id="login-error" style="min-height:16px; margin-bottom:8px;"></div>
+    <button type="submit" class="btn btn-primary" id="login-submit" style="width:100%;">Entrar</button>
+  </form>
+</div>
+
+<!-- PANEL -->
+<div id="app-shell" style="display:none;">
+<div class="local-mode-banner" id="local-mode-banner" style="display:none;">
+  Modo local: Firebase no está configurado, así que este panel no está protegido con usuario y contraseña ni se sincroniza entre dispositivos.
+</div>
 <header>
   <div class="logo">☕ FACE COFFEE <span>admin</span></div>
   <div class="head-actions">
+    <span class="mono" id="admin-whoami" style="font-size:11.5px; color:var(--cream-faint);"></span>
     <a href="index.html" target="_blank">Ver menú público ↗</a>
     <button class="btn btn-ghost" id="settings-btn">⚙ Configuración</button>
+    <button class="btn btn-ghost" id="logout-btn">Salir</button>
   </div>
 </header>
 
-<div class="toolbar">
-  <div>
-    <h1>Tablero de menú</h1>
-    <div class="sub">Arrastra tarjetas para reordenar o cambiar de categoría. Los cambios se guardan al instante.</div>
-  </div>
-  <button class="btn btn-primary" id="add-category-btn">+ Nueva categoría</button>
+<div class="tabs" id="admin-tabs">
+  <button class="tab-btn active" data-tab="tab-menu">Menú</button>
+  <button class="tab-btn" data-tab="tab-coupons">Cupones</button>
+  <button class="tab-btn" data-tab="tab-loyalty">Fidelidad</button>
+  <button class="tab-btn" data-tab="tab-kitchen">Cocina</button>
+  <button class="tab-btn" data-tab="tab-cash">Caja</button>
 </div>
 
-<div class="board" id="board"></div>
+<section id="tab-menu" class="tab-panel">
+  <div class="toolbar">
+    <div>
+      <h1>Tablero de menú</h1>
+      <div class="sub">Arrastra tarjetas para reordenar o cambiar de categoría. Los cambios se guardan al instante.</div>
+    </div>
+    <button class="btn btn-primary" id="add-category-btn">+ Nueva categoría</button>
+  </div>
+  <div class="board" id="board"></div>
+</section>
+
+<section id="tab-coupons" class="tab-panel" hidden>
+  <div class="toolbar">
+    <div><h1>Cupones de descuento</h1><div class="sub">El texto de abajo aparece en el botón "Cupón" del sitio público.</div></div>
+    <button class="btn btn-primary" id="add-coupon-btn">+ Nuevo cupón</button>
+  </div>
+  <div class="panel-pad">
+    <div class="field">
+      <label>Descripción del cupón (visible para el cliente)</label>
+      <textarea id="coupon-desc-input" rows="2"></textarea>
+      <button class="btn btn-ghost" id="save-coupon-desc" style="margin-top:8px;">Guardar descripción</button>
+    </div>
+    <div id="coupons-list" class="simple-list"></div>
+  </div>
+</section>
+
+<section id="tab-loyalty" class="tab-panel" hidden>
+  <div class="toolbar"><div><h1>Programa de fidelidad</h1><div class="sub">Configura el texto y la meta de sellos que ve el cliente.</div></div></div>
+  <div class="panel-pad">
+    <div class="toggle-row">
+      <label style="margin:0;">Activar programa de fidelidad</label>
+      <label class="switch"><input type="checkbox" id="loyalty-enabled"><span class="slider"></span></label>
+    </div>
+    <div class="field">
+      <label>Descripción (visible para el cliente)</label>
+      <textarea id="loyalty-desc-input" rows="2"></textarea>
+    </div>
+    <div class="field field-row">
+      <div><label>Sellos para la recompensa</label><input type="number" id="loyalty-goal-input" min="1"></div>
+      <div><label>Recompensa</label><input type="text" id="loyalty-reward-input" placeholder="Ej. Un café gratis"></div>
+    </div>
+    <button class="btn btn-primary" id="save-loyalty-btn">Guardar</button>
+
+    <h3 style="margin-top:32px; font-size:15px;">Buscar cliente</h3>
+    <div class="field-row" style="margin-top:10px;">
+      <input type="tel" id="loyalty-lookup-phone" placeholder="Número de WhatsApp del cliente">
+      <button class="btn btn-ghost" id="loyalty-lookup-btn">Buscar</button>
+    </div>
+    <div id="loyalty-lookup-result" style="margin-top:10px; font-size:13.5px; color:var(--cream-dim);"></div>
+  </div>
+</section>
+
+<section id="tab-kitchen" class="tab-panel" hidden>
+  <div class="toolbar"><div><h1>Cocina</h1><div class="sub">Pedidos en tiempo real hechos desde el sitio público.</div></div></div>
+  <div class="board" id="kitchen-board">
+    <div class="column" style="width:100%;"><div class="col-body">Requiere Firebase configurado para recibir pedidos aquí.</div></div>
+  </div>
+</section>
+
+<section id="tab-cash" class="tab-panel" hidden>
+  <div class="toolbar"><div><h1>Caja</h1><div class="sub">Ingresos del día y balance por mes.</div></div></div>
+  <div class="panel-pad">
+    <div class="cash-summary">
+      <div class="cash-card"><span class="mono cash-label">HOY</span><b id="cash-today">$0.00</b><span class="cash-sub" id="cash-today-count">0 pedidos</span></div>
+      <div class="cash-card"><span class="mono cash-label">ESTE MES</span><b id="cash-month">$0.00</b><span class="cash-sub" id="cash-month-count">0 pedidos</span></div>
+    </div>
+    <h3 style="margin:24px 0 10px; font-size:15px;">Balance por mes</h3>
+    <table class="cash-table" id="cash-table"><tbody></tbody></table>
+  </div>
+</section>
+</div><!-- /app-shell -->
 
 <!-- MODAL PRODUCTO -->
 <div class="modal-overlay" id="product-modal">
@@ -175,8 +342,13 @@
       </div>
     </div>
     <div class="field">
-      <label>URL de imagen (opcional)</label>
-      <input type="text" id="pm-image" placeholder="https://...">
+      <label>Foto del producto (opcional)</label>
+      <input type="hidden" id="pm-image">
+      <div class="dropzone" id="pm-dropzone">
+        <div id="dz-text">📷 Arrastra una foto aquí o haz clic para elegirla</div>
+        <div class="dz-progress" id="dz-progress"></div>
+        <input type="file" id="pm-file" accept="image/*">
+      </div>
       <div class="img-preview" id="pm-preview">☕</div>
     </div>
     <div class="toggle-row">
@@ -253,8 +425,16 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="data.js"></script>
+<script defer src="data.js"></script>
+<script defer src="firebase-config.js"></script>
+<script defer src="firebase-core.js"></script>
+<script defer src="firebase-sync.js"></script>
+<script defer src="firebase-orders.js"></script>
+<script defer src="firebase-auth.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+function initApp(){
   let data = FCData.loadData();
   let editingProductId = null;
   let draggedProduct = null;
@@ -421,6 +601,9 @@
       catSelect.value = presetCategoryId || data.categories[0]?.id;
       document.getElementById('pm-delete').style.display = 'none';
     }
+    document.getElementById('dz-text').textContent = '📷 Arrastra una foto aquí o haz clic para elegirla';
+    document.getElementById('dz-progress').textContent = '';
+    document.getElementById('pm-file').value = '';
     updateImgPreview();
     pModal.classList.add('open');
   }
@@ -432,8 +615,74 @@
     const fallback = `<svg><use href="#${icon}"></use></svg>`;
     prev.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'">` : fallback;
   }
-  document.getElementById('pm-image').addEventListener('input', updateImgPreview);
   document.getElementById('pm-category').addEventListener('change', updateImgPreview);
+
+  // ---------- Arrastrar y soltar imagen ----------
+  function compressImage(file){
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        img.onload = ()=>{
+          const maxW = 900;
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob)=> blob ? resolve(blob) : reject(new Error('No se pudo procesar la imagen')), 'image/jpeg', 0.78);
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  async function handleImageFile(file){
+    if(!file || !file.type.startsWith('image/')){ toast('Elige un archivo de imagen'); return; }
+    const progress = document.getElementById('dz-progress');
+    const dzText = document.getElementById('dz-text');
+    if(!window.FCCore || !window.FCCore.isConfigured()){
+      toast('Configura Firebase para poder subir fotos');
+      return;
+    }
+    try{
+      dzText.textContent = 'Comprimiendo…';
+      progress.textContent = '';
+      const blob = await compressImage(file);
+      // Vista previa instantánea con el archivo local, mientras sube
+      document.getElementById('pm-preview').innerHTML = `<img src="${URL.createObjectURL(blob)}">`;
+      dzText.textContent = 'Subiendo…';
+      const core = await window.FCCore.core();
+      const storageMod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js');
+      const storage = storageMod.getStorage(core.app);
+      const path = 'products/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.jpg';
+      const sref = storageMod.ref(storage, path);
+      await storageMod.uploadBytes(sref, blob, { contentType:'image/jpeg' });
+      const url = await storageMod.getDownloadURL(sref);
+      document.getElementById('pm-image').value = url;
+      dzText.textContent = '✓ Foto lista — arrastra otra para cambiarla';
+      progress.textContent = '';
+    } catch(e){
+      console.error(e);
+      dzText.textContent = '📷 Arrastra una foto aquí o haz clic para elegirla';
+      progress.textContent = '';
+      toast('No se pudo subir la foto. Revisa tu conexión.');
+      updateImgPreview();
+    }
+  }
+  const dropzone = document.getElementById('pm-dropzone');
+  const fileInput = document.getElementById('pm-file');
+  dropzone.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', ()=> handleImageFile(fileInput.files[0]));
+  ['dragenter','dragover'].forEach(ev=> dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); dropzone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(ev=> dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); dropzone.classList.remove('drag-over'); }));
+  dropzone.addEventListener('drop', (e)=>{
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(file) handleImageFile(file);
+  });
+
   document.getElementById('pm-cancel').addEventListener('click', ()=> pModal.classList.remove('open'));
   document.getElementById('pm-save').addEventListener('click', ()=>{
     const name = document.getElementById('pm-name').value.trim();
@@ -515,6 +764,244 @@
   });
 
   renderBoard();
+
+  // ---------- TABS ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+      document.querySelectorAll('.tab-panel').forEach(p=> p.hidden = (p.id !== btn.dataset.tab));
+    });
+  });
+
+  // ---------- CUPONES ----------
+  function renderCoupons(){
+    data = FCData.loadData();
+    document.getElementById('coupon-desc-input').value = FCData.loadSettings().couponDescription || '';
+    const wrap = document.getElementById('coupons-list');
+    wrap.innerHTML = '';
+    if(data.coupons.length === 0){
+      wrap.innerHTML = '<div class="sub">Aún no tienes cupones. Crea el primero con "+ Nuevo cupón".</div>';
+      return;
+    }
+    data.coupons.forEach(c=>{
+      const row = document.createElement('div');
+      row.className = 'simple-item';
+      const valueTxt = c.type === 'fixed' ? `$${c.value.toFixed(2)} de descuento` : `${c.value}% de descuento`;
+      row.innerHTML = `
+        <div><b class="mono">${c.code}</b> — ${valueTxt} ${c.active?'':'<span class="badge-inactive">(inactivo)</span>'}</div>
+        <div class="actions">
+          <button data-edit="${c.id}" title="Editar">✎</button>
+          <button data-del="${c.id}" class="danger" title="Eliminar">🗑</button>
+        </div>`;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click', ()=> openCouponModal(b.dataset.edit)));
+    wrap.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{
+      if(confirm('¿Eliminar este cupón?')){ FCData.deleteCoupon(b.dataset.del); renderCoupons(); toast('Cupón eliminado'); }
+    }));
+  }
+  document.getElementById('save-coupon-desc').addEventListener('click', ()=>{
+    const s = FCData.loadSettings();
+    s.couponDescription = document.getElementById('coupon-desc-input').value.trim();
+    FCData.saveSettings(s);
+    toast('Descripción guardada');
+  });
+  let editingCouponId = null;
+  function openCouponModal(id){
+    editingCouponId = id || null;
+    const c = id ? data.coupons.find(c=>c.id===id) : null;
+    const code = prompt('Código del cupón (ej. BIENVENIDA10):', c ? c.code : '');
+    if(code === null) return;
+    const type = prompt('Tipo: escribe "percent" (%) o "fixed" ($):', c ? c.type : 'percent');
+    if(type === null) return;
+    const value = prompt('Valor del descuento (número):', c ? c.value : '10');
+    if(value === null) return;
+    if(id){
+      FCData.updateCoupon(id, { code, type: type.trim()==='fixed'?'fixed':'percent', value: parseFloat(value)||0 });
+      toast('Cupón actualizado');
+    } else {
+      FCData.addCoupon({ code, type: type.trim()==='fixed'?'fixed':'percent', value: parseFloat(value)||0, active:true });
+      toast('Cupón creado');
+    }
+    renderCoupons();
+  }
+  document.getElementById('add-coupon-btn').addEventListener('click', ()=> openCouponModal(null));
+  renderCoupons();
+
+  // ---------- FIDELIDAD ----------
+  function loadLoyaltyForm(){
+    const s = FCData.loadSettings();
+    document.getElementById('loyalty-enabled').checked = !!s.loyaltyEnabled;
+    document.getElementById('loyalty-desc-input').value = s.loyaltyDescription || '';
+    document.getElementById('loyalty-goal-input').value = s.loyaltyStampsGoal || 10;
+    document.getElementById('loyalty-reward-input').value = s.loyaltyReward || '';
+  }
+  document.getElementById('save-loyalty-btn').addEventListener('click', ()=>{
+    const s = FCData.loadSettings();
+    s.loyaltyEnabled = document.getElementById('loyalty-enabled').checked;
+    s.loyaltyDescription = document.getElementById('loyalty-desc-input').value.trim();
+    s.loyaltyStampsGoal = parseInt(document.getElementById('loyalty-goal-input').value, 10) || 10;
+    s.loyaltyReward = document.getElementById('loyalty-reward-input').value.trim();
+    FCData.saveSettings(s);
+    toast('Fidelidad guardada');
+  });
+  document.getElementById('loyalty-lookup-btn').addEventListener('click', async ()=>{
+    const phone = document.getElementById('loyalty-lookup-phone').value.trim().replace(/\D/g,'');
+    const out = document.getElementById('loyalty-lookup-result');
+    if(!phone){ out.textContent = 'Escribe un número.'; return; }
+    if(!window.FCOrders || !window.FCCore.isConfigured()){ out.textContent = 'Requiere Firebase configurado.'; return; }
+    out.textContent = 'Buscando…';
+    const stamps = await window.FCOrders.getStamps(phone);
+    out.innerHTML = `${phone} tiene <b class="mono" style="color:var(--gold)">${stamps}</b> sellos. ` +
+      `<button class="btn btn-ghost" id="loyalty-adjust-btn" style="margin-left:8px;">Ajustar</button>`;
+    document.getElementById('loyalty-adjust-btn').addEventListener('click', async ()=>{
+      const n = prompt('Nuevo número de sellos para ' + phone + ':', stamps);
+      if(n === null) return;
+      await window.FCOrders.setStamps(phone, parseInt(n,10)||0);
+      toast('Sellos actualizados');
+      document.getElementById('loyalty-lookup-btn').click();
+    });
+  });
+  loadLoyaltyForm();
+
+  // ---------- COCINA (pedidos en tiempo real) ----------
+  let ordersCache = [];
+  function renderKitchen(){
+    const board = document.getElementById('kitchen-board');
+    if(!window.FCCore || !window.FCCore.isConfigured()) return; // deja el mensaje fijo de "requiere Firebase"
+    const cols = [
+      { key:'pendiente', label:'🕓 Pendiente' },
+      { key:'preparando', label:'👨‍🍳 Preparando' },
+      { key:'listo', label:'✅ Listo' },
+    ];
+    board.innerHTML = '';
+    cols.forEach(col=>{
+      const div = document.createElement('div');
+      div.className = 'column';
+      const body = document.createElement('div');
+      body.className = 'col-body';
+      const orders = ordersCache.filter(o => (o.status||'pendiente') === col.key);
+      body.innerHTML = orders.length ? '' : '<div class="sub" style="padding:10px;">Sin pedidos</div>';
+      orders.forEach(o=>{
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        const time = o.createdAt ? new Date(o.createdAt).toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'}) : '';
+        card.innerHTML = `
+          <div class="order-head"><span>${time}</span><span>${o.phone||''}</span></div>
+          <ul>${(o.items||[]).map(it=>`<li><span>${it.qty}x ${it.name}</span></li>`).join('')}</ul>
+          <div class="order-total"><span>Total</span><span>$${Number(o.total||0).toFixed(2)}</span></div>
+          <button class="btn btn-ghost" data-next="${o.id}">${col.key==='pendiente'?'→ Preparando':col.key==='preparando'?'→ Listo':'✓ Entregado'}</button>
+        `;
+        body.appendChild(card);
+      });
+      div.innerHTML = `<div class="col-head"><div class="col-title">${col.label}</div><div class="col-count">${orders.length}</div></div>`;
+      div.appendChild(body);
+      board.appendChild(div);
+    });
+    board.querySelectorAll('[data-next]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const o = ordersCache.find(x=>x.id===btn.dataset.next);
+        const next = o.status==='preparando' ? 'listo' : o.status==='listo' ? 'entregado' : 'preparando';
+        window.FCOrders.updateOrderStatus(o.id, next);
+      });
+    });
+  }
+  function renderCash(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayOrders = ordersCache.filter(o=> o.createdAt >= today.getTime());
+    document.getElementById('cash-today').textContent = '$' + todayOrders.reduce((s,o)=>s+Number(o.total||0),0).toFixed(2);
+    document.getElementById('cash-today-count').textContent = todayOrders.length + ' pedido' + (todayOrders.length!==1?'s':'');
+
+    const byMonth = {};
+    ordersCache.forEach(o=>{
+      const d = new Date(o.createdAt || Date.now());
+      const key = d.toLocaleDateString('es-EC', { year:'numeric', month:'long' });
+      byMonth[key] = byMonth[key] || { total:0, count:0, ts:d.getFullYear()*100+d.getMonth() };
+      byMonth[key].total += Number(o.total||0);
+      byMonth[key].count += 1;
+    });
+    const rows = Object.entries(byMonth).sort((a,b)=> b[1].ts - a[1].ts);
+    const nowKey = new Date().toLocaleDateString('es-EC', { year:'numeric', month:'long' });
+    const monthData = byMonth[nowKey] || { total:0, count:0 };
+    document.getElementById('cash-month').textContent = '$' + monthData.total.toFixed(2);
+    document.getElementById('cash-month-count').textContent = monthData.count + ' pedido' + (monthData.count!==1?'s':'');
+
+    const tbody = document.querySelector('#cash-table tbody');
+    tbody.innerHTML = rows.length ? '' : '<tr><td colspan="2">Todavía no hay pedidos registrados.</td></tr>';
+    rows.forEach(([label, v])=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${label} · ${v.count} pedido${v.count!==1?'s':''}</td><td>$${v.total.toFixed(2)}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  if (window.FCOrders && window.FCCore && window.FCCore.isConfigured()) {
+    window.FCOrders.listenOrders((orders)=>{
+      ordersCache = orders;
+      renderKitchen();
+      renderCash();
+    });
+  } else {
+    renderCash();
+  }
+} // fin de initApp()
+
+// ---------- LOGIN / SESIÓN ----------
+const loginScreen = document.getElementById('login-screen');
+const appShell = document.getElementById('app-shell');
+let appStarted = false;
+
+function showApp(email){
+  loginScreen.style.display = 'none';
+  appShell.style.display = 'block';
+  const who = document.getElementById('admin-whoami');
+  if(who) who.textContent = email || '';
+  if(!appStarted){ appStarted = true; initApp(); }
+}
+function showLogin(msg){
+  appShell.style.display = 'none';
+  loginScreen.style.display = 'flex';
+  document.getElementById('login-error').textContent = msg || '';
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-submit');
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try {
+    await window.FCAuth.login(email, pass);
+    // showApp() se dispara solo vía onAuthChange
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = 'Correo o contraseña incorrectos.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+document.getElementById('logout-btn')?.addEventListener('click', async ()=>{
+  if(window.FCAuth) await window.FCAuth.logout();
+  location.reload();
+});
+
+if (!window.FCCore || !window.FCCore.isConfigured()) {
+  // Sin Firebase configurado: modo local, sin login (como antes), con aviso.
+  const banner = document.getElementById('local-mode-banner');
+  if(banner) banner.style.display = 'block';
+  showApp('');
+} else if (window.FCAuth) {
+  window.FCAuth.onAuthChange((user)=>{
+    if (user) showApp(user.email);
+    else showLogin();
+  });
+} else {
+  showApp('');
+}
+
+}); // fin de DOMContentLoaded
 </script>
 </body>
 </html>
