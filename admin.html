@@ -483,6 +483,20 @@ function initApp(){
   let draggedProduct = null;
   let draggedColumn = null;
 
+  // BUG ENCONTRADO: firebase-sync.js se cargaba pero nunca se inicializaba
+  // aquí. Sin esto, cada cambio hecho en el admin (productos, fotos,
+  // cupones, fidelidad, configuración) se guardaba solo en el localStorage
+  // de ESA computadora y jamás llegaba a Firestore — por eso no aparecía
+  // en otros dispositivos. Se llama sin await (igual que en index.html)
+  // para no bloquear la carga del panel mientras se conecta.
+  if (window.FCSync) { window.FCSync.init(); }
+  window.addEventListener('fc-remote-ready', (e)=>{
+    if(e.detail && e.detail.changed){
+      data = FCData.loadData();
+      renderBoard();
+    }
+  });
+
   const CATEGORY_ICON = {
     'pal-calor':'icon-pal-calor', 'pal-frio':'icon-pal-frio', 'crepas':'icon-crepas',
     'frappe':'icon-frappe', 'milkshake':'icon-milkshake', 'micheladas':'icon-micheladas',
