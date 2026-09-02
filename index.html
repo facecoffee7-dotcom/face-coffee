@@ -296,13 +296,13 @@
       </div>
     </div>
     <div class="story-copy">
-      <div class="eyebrow reveal">NUESTRA FINCA</div>
-      <h2 class="reveal">Lo que la altura no da,<br>lo da el proceso.</h2>
-      <p class="reveal">Cultivamos Ecurobusta en La Maná, a apenas 220 metros sobre el nivel del mar. En vez de competir con la altura, competimos con el proceso post-cosecha: fermentación controlada, secado lento y selección manual, grano por grano.</p>
+      <div class="eyebrow reveal" id="story-eyebrow">NUESTRA FINCA</div>
+      <h2 class="reveal" id="story-title">Lo que la altura no da,<br>lo da el proceso.</h2>
+      <p class="reveal" id="story-text">Cultivamos Ecurobusta en La Maná, a apenas 220 metros sobre el nivel del mar. En vez de competir con la altura, competimos con el proceso post-cosecha: fermentación controlada, secado lento y selección manual, grano por grano.</p>
       <div class="story-stats reveal">
-        <div class="stat"><b data-count="220">0</b><span>MSNM DE FINCA</span></div>
-        <div class="stat"><b data-count="100">0</b><span>% ECUROBUSTA</span></div>
-        <div class="stat"><b data-count="0">0</b><span>INTERMEDIARIOS</span></div>
+        <div class="stat"><b data-count="220" id="story-stat1-value">0</b><span id="story-stat1-label">MSNM DE FINCA</span></div>
+        <div class="stat"><b data-count="100" id="story-stat2-value">0</b><span id="story-stat2-label">% ECUROBUSTA</span></div>
+        <div class="stat"><b data-count="0" id="story-stat3-value">0</b><span id="story-stat3-label">INTERMEDIARIOS</span></div>
       </div>
     </div>
   </div>
@@ -402,6 +402,17 @@ async function boot(){
   })();
   document.getElementById('footer-info').textContent =
     `${settings.businessName} · ${settings.address} · ${settings.hours} · ${settings.instagram}`;
+
+  // Sección "Nuestra finca" — editable desde el admin (Configuración)
+  document.getElementById('story-eyebrow').textContent = settings.storyEyebrow || '';
+  document.getElementById('story-title').innerHTML = (settings.storyTitle || '').split('\n').join('<br>');
+  document.getElementById('story-text').textContent = settings.storyText || '';
+  document.getElementById('story-stat1-value').dataset.count = settings.storyStat1Value ?? 0;
+  document.getElementById('story-stat1-label').textContent = settings.storyStat1Label || '';
+  document.getElementById('story-stat2-value').dataset.count = settings.storyStat2Value ?? 0;
+  document.getElementById('story-stat2-label').textContent = settings.storyStat2Label || '';
+  document.getElementById('story-stat3-value').dataset.count = settings.storyStat3Value ?? 0;
+  document.getElementById('story-stat3-label').textContent = settings.storyStat3Label || '';
 
   // --- Parallax + reveal-on-scroll (estilo Apple) ---
   requestAnimationFrame(()=> document.getElementById('hero').classList.add('loaded'));
