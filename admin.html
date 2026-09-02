@@ -416,6 +416,48 @@
       <label>Instagram</label>
       <input type="text" id="sm-instagram">
     </div>
+    <div class="field" style="border-top:1px solid var(--line); padding-top:14px; margin-top:4px;">
+      <label>Sección "Nuestra finca" — texto pequeño (eyebrow)</label>
+      <input type="text" id="sm-story-eyebrow" placeholder="NUESTRA FINCA">
+    </div>
+    <div class="field">
+      <label>Título (usa un salto de línea para partirlo en dos líneas)</label>
+      <textarea id="sm-story-title" rows="2"></textarea>
+    </div>
+    <div class="field">
+      <label>Párrafo</label>
+      <textarea id="sm-story-text" rows="4"></textarea>
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Estadística 1 — valor</label>
+        <input type="number" id="sm-story-stat1-value">
+      </div>
+      <div>
+        <label>Estadística 1 — etiqueta</label>
+        <input type="text" id="sm-story-stat1-label" placeholder="MSNM DE FINCA">
+      </div>
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Estadística 2 — valor</label>
+        <input type="number" id="sm-story-stat2-value">
+      </div>
+      <div>
+        <label>Estadística 2 — etiqueta</label>
+        <input type="text" id="sm-story-stat2-label" placeholder="% ECUROBUSTA">
+      </div>
+    </div>
+    <div class="field field-row">
+      <div>
+        <label>Estadística 3 — valor</label>
+        <input type="number" id="sm-story-stat3-value">
+      </div>
+      <div>
+        <label>Estadística 3 — etiqueta</label>
+        <input type="text" id="sm-story-stat3-label" placeholder="INTERMEDIARIOS">
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="sm-cancel">Cancelar</button>
       <button class="btn btn-primary" id="sm-save">Guardar</button>
@@ -668,7 +710,11 @@ function initApp(){
       console.error(e);
       dzText.textContent = '📷 Arrastra una foto aquí o haz clic para elegirla';
       progress.textContent = '';
-      toast('No se pudo subir la foto. Revisa tu conexión.');
+      // Mostramos el código real del error (ej. storage/unauthorized,
+      // storage/unknown) en vez de un mensaje genérico, para poder saber
+      // si falta activar Storage, publicar sus reglas, o iniciar sesión.
+      const detail = (e && (e.code || e.message)) ? ` (${e.code || e.message})` : '';
+      toast('No se pudo subir la foto' + detail);
       updateImgPreview();
     }
   }
@@ -743,18 +789,41 @@ function initApp(){
     document.getElementById('sm-address').value = s.address;
     document.getElementById('sm-hours').value = s.hours;
     document.getElementById('sm-instagram').value = s.instagram;
+    document.getElementById('sm-story-eyebrow').value = s.storyEyebrow || '';
+    document.getElementById('sm-story-title').value = s.storyTitle || '';
+    document.getElementById('sm-story-text').value = s.storyText || '';
+    document.getElementById('sm-story-stat1-value').value = s.storyStat1Value ?? '';
+    document.getElementById('sm-story-stat1-label').value = s.storyStat1Label || '';
+    document.getElementById('sm-story-stat2-value').value = s.storyStat2Value ?? '';
+    document.getElementById('sm-story-stat2-label').value = s.storyStat2Label || '';
+    document.getElementById('sm-story-stat3-value').value = s.storyStat3Value ?? '';
+    document.getElementById('sm-story-stat3-label').value = s.storyStat3Label || '';
     sModal.classList.add('open');
   });
   document.getElementById('sm-cancel').addEventListener('click', ()=> sModal.classList.remove('open'));
   document.getElementById('sm-save').addEventListener('click', ()=>{
-    FCData.saveSettings({
+    // OJO: se fusiona con los ajustes actuales (no se reemplazan todos),
+    // porque antes esto borraba en silencio la descripción de cupón y de
+    // fidelidad cada vez que se guardaba esta sección.
+    const s = FCData.loadSettings();
+    Object.assign(s, {
       whatsapp: document.getElementById('sm-whatsapp').value.trim().replace(/\D/g,''),
       businessName: document.getElementById('sm-name').value.trim(),
       tagline: document.getElementById('sm-tagline').value.trim(),
       address: document.getElementById('sm-address').value.trim(),
       hours: document.getElementById('sm-hours').value.trim(),
       instagram: document.getElementById('sm-instagram').value.trim(),
+      storyEyebrow: document.getElementById('sm-story-eyebrow').value.trim(),
+      storyTitle: document.getElementById('sm-story-title').value.trim(),
+      storyText: document.getElementById('sm-story-text').value.trim(),
+      storyStat1Value: parseInt(document.getElementById('sm-story-stat1-value').value, 10) || 0,
+      storyStat1Label: document.getElementById('sm-story-stat1-label').value.trim(),
+      storyStat2Value: parseInt(document.getElementById('sm-story-stat2-value').value, 10) || 0,
+      storyStat2Label: document.getElementById('sm-story-stat2-label').value.trim(),
+      storyStat3Value: parseInt(document.getElementById('sm-story-stat3-value').value, 10) || 0,
+      storyStat3Label: document.getElementById('sm-story-stat3-label').value.trim(),
     });
+    FCData.saveSettings(s);
     sModal.classList.remove('open');
     toast('Configuración guardada');
   });
