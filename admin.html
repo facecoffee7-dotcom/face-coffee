@@ -343,9 +343,10 @@
     </div>
     <div class="field">
       <label>Foto del producto (opcional)</label>
-      <input type="hidden" id="pm-image">
-      <div class="dropzone" id="pm-dropzone">
-        <div id="dz-text">📷 Arrastra una foto aquí o haz clic para elegirla</div>
+      <label style="font-weight:400; text-transform:none; letter-spacing:0; font-size:12px; margin-bottom:4px;">Pega el link de la foto (ej. subida a imgbb o Cloudinary)</label>
+      <input type="text" id="pm-image" placeholder="https://...">
+      <div class="dropzone" id="pm-dropzone" style="margin-top:10px;">
+        <div id="dz-text">📷 O arrastra una foto aquí (requiere Firebase Storage activo)</div>
         <div class="dz-progress" id="dz-progress"></div>
         <input type="file" id="pm-file" accept="image/*">
       </div>
@@ -658,6 +659,7 @@ function initApp(){
     prev.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'">` : fallback;
   }
   document.getElementById('pm-category').addEventListener('change', updateImgPreview);
+  document.getElementById('pm-image').addEventListener('input', updateImgPreview);
 
   // ---------- Arrastrar y soltar imagen ----------
   function compressImage(file){
