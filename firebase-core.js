@@ -4,6 +4,17 @@
    No bloquea nada: solo se conecta a la red cuando algo llama a
    FCCore.core(); index.html/admin.html pintan con localStorage
    primero y esto llega después, en segundo plano.
+
+   CAMBIO: Firestore usa por defecto una conexión "streaming"
+   (WebChannel) que muchos antivirus con inspección de tráfico
+   cifrado (Kaspersky, ESET, etc.) o redes corporativas cortan,
+   aunque el resto de internet funcione bien — el síntoma es
+   "Failed to get document because the client is offline" con
+   internet normal. Forzamos long-polling (peticiones HTTPS
+   normales repetidas) en vez de streaming: es un poco más lento
+   pero evita ese bloqueo casi siempre. Afecta tanto al admin
+   como a clientes que abran index.html detrás de un antivirus
+   parecido.
    ============================================================ */
 (function (global) {
   function isConfigured() {
@@ -21,7 +32,10 @@
           import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
         ]);
         const app = initializeApp(global.__FIREBASE_CONFIG__);
-        const db = firestoreApi.getFirestore(app);
+        const db = firestoreApi.initializeFirestore(app, {
+          experimentalAutoDetectLongPolling: true,
+          useFetchStreams: false,
+        });
         return { app, db, firestoreApi };
       })();
     }
