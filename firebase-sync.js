@@ -21,6 +21,9 @@
       getDoc(doc(db, SETTINGS_DOC.collection, SETTINGS_DOC.doc)),
     ]);
     let changed = false;
+    // Si justo se guardó algo local mientras esta lectura estaba en camino,
+    // no la dejamos pisar ese guardado recién hecho.
+    if (global.__FC_JUST_SAVED__) return false;
     if (menuSnap.exists()) {
       const remote = JSON.stringify(menuSnap.data());
       if (remote !== localStorage.getItem('facecoffee_menu_v1')) {
@@ -84,8 +87,12 @@
     }
     try {
       const { db, firestoreApi: api } = await global.FCCore.core();
-      const changed = await pullFromFirestore(db, api);
+      // Activamos el parche ANTES de traer los datos: así, cualquier
+      // guardado que hagas mientras la lectura inicial todavía está en
+      // camino ya se sube a Firestore de inmediato, en vez de quedarse
+      // solo en este navegador y luego ser pisado por la lectura vieja.
       patchFCData(db, api);
+      const changed = await pullFromFirestore(db, api);
       watchRemoteChanges(db, api);
       global.dispatchEvent(new CustomEvent('fc-remote-ready', { detail: { changed, online: true } }));
       console.info('[Face Coffee] Sincronización con Firebase activa.');
