@@ -9,14 +9,6 @@
 
   const uid = () => 'p_' + Math.random().toString(36).slice(2, 10);
 
-  // structuredClone no existe en varios navegadores móviles/WebView más
-  // antiguos (algunos Android/Samsung Internet). Como esto se llamaba en
-  // la PRIMERA carga de cualquier cliente nuevo (celular sin nada aún en
-  // localStorage), un navegador sin structuredClone rompía el script
-  // completo ahí mismo y la página se quedaba en blanco. Este clon vía
-  // JSON funciona en todos lados para datos simples como los nuestros.
-  const clone = (obj) => JSON.parse(JSON.stringify(obj));
-
   const DEFAULT_DATA = {
     categories: [
       { id: 'pal-frio',    name: 'Pal Frío',    icon: '🧊', order: 0, active: true },
@@ -77,35 +69,34 @@
     loyaltyDescription: 'Por cada pedido que hagas ganas 1 sello. Junta los sellos y canjea tu recompensa.',
     loyaltyStampsGoal: 10,
     loyaltyReward: 'Un café gratis',
-    storyEyebrow: 'NUESTRA FINCA',
-    storyTitle: 'Lo que la altura no da,\nlo da el proceso.',
-    storyText: 'Cultivamos Ecurobusta en La Maná, a apenas 220 metros sobre el nivel del mar. En vez de competir con la altura, competimos con el proceso post-cosecha: fermentación controlada, secado lento y selección manual, grano por grano.',
-    storyStat1Value: 220, storyStat1Label: 'MSNM DE FINCA',
-    storyStat2Value: 100, storyStat2Label: '% ECUROBUSTA',
-    storyStat3Value: 0, storyStat3Label: 'INTERMEDIARIOS',
   };
+
+  let onSaveHook = null;
+  function setSyncHook(fn) { onSaveHook = fn; } // usado por firebase-sync.js
 
   function loadData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) { saveData(DEFAULT_DATA); return clone(DEFAULT_DATA); }
+      if (!raw) { saveData(DEFAULT_DATA); return structuredClone(DEFAULT_DATA); }
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed.coupons)) parsed.coupons = [];
       return parsed;
-    } catch (e) { console.error('FCData.loadData', e); return clone(DEFAULT_DATA); }
+    } catch (e) { console.error('FCData.loadData', e); return structuredClone(DEFAULT_DATA); }
   }
   function saveData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (onSaveHook) onSaveHook('menu', data); // dispara la subida a Firestore SIEMPRE, sin importar qué función llamó a saveData
   }
   function loadSettings() {
     try {
       const raw = localStorage.getItem(SETTINGS_KEY);
-      if (!raw) { saveSettings(DEFAULT_SETTINGS); return clone(DEFAULT_SETTINGS); }
+      if (!raw) { saveSettings(DEFAULT_SETTINGS); return structuredClone(DEFAULT_SETTINGS); }
       return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-    } catch (e) { return clone(DEFAULT_SETTINGS); }
+    } catch (e) { return structuredClone(DEFAULT_SETTINGS); }
   }
   function saveSettings(s) {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+    if (onSaveHook) onSaveHook('settings', s);
   }
 
   // ---------- Categorías ----------
@@ -231,13 +222,13 @@
   }
 
   function resetToDefaults() {
-    saveData(clone(DEFAULT_DATA));
-    saveSettings(clone(DEFAULT_SETTINGS));
+    saveData(structuredClone(DEFAULT_DATA));
+    saveSettings(structuredClone(DEFAULT_SETTINGS));
     return loadData();
   }
 
   global.FCData = {
-    loadData, saveData, loadSettings, saveSettings,
+    loadData, saveData, loadSettings, saveSettings, setSyncHook,
     addCategory, updateCategory, deleteCategory, reorderCategories,
     addProduct, updateProduct, deleteProduct, reorderProductsInCategory, moveProductToCategory,
     addCoupon, updateCoupon, deleteCoupon, findActiveCoupon,
