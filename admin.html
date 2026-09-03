@@ -117,6 +117,7 @@
 
   /* LOGIN */
   .login-screen{
+    position:fixed; inset:0; z-index:500; background:var(--bg);
     min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
   }
   .login-card{
@@ -434,6 +435,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
 function initApp(){
   let data = FCData.loadData();
   let editingProductId = null;
@@ -462,12 +469,6 @@ function initApp(){
     if (p.image) return `<img src="${p.image}">`;
     const icon = CATEGORY_ICON[p.categoryId] || 'icon-default';
     return `<svg><use href="#${icon}"></use></svg>`;
-  }
-
-  function toast(msg){
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), 1600);
   }
 
   function renderBoard(){
@@ -1007,12 +1008,26 @@ if (!window.FCCore || !window.FCCore.isConfigured()) {
   showApp('');
 } else if (window.FCAuth) {
   window.FCAuth.onAuthChange((user)=>{
-    if (user) showApp(user.email);
-    else showLogin();
+    if (user) {
+      showApp(user.email);
+    } else if (!appStarted) {
+      // Solo pedimos login si todavía no habíamos entrado. Si ya estábamos
+      // dentro y llega un aviso de sesión nula (parpadeo de red, refresco de
+      // token, etc.) lo ignoramos: no tiene sentido sacar a alguien de en
+      // medio de su trabajo. El botón "Salir" ya fuerza una recarga completa
+      // cuando de verdad se cierra sesión.
+      showLogin();
+    }
   });
 } else {
   showApp('');
 }
+
+window.addEventListener('fc-sync-error', (e)=>{
+  const action = (e.detail && e.detail.action) || 'sincronizar';
+  toast('⚠ No se pudo ' + action + '. Revisa las reglas de Firestore/Storage.');
+  console.error('[Face Coffee] fc-sync-error:', e.detail);
+});
 
 }); // fin de DOMContentLoaded
 </script>
