@@ -344,12 +344,13 @@
     </div>
     <div class="field">
       <label>Foto del producto (opcional)</label>
-      <input type="hidden" id="pm-image">
       <div class="dropzone" id="pm-dropzone">
         <div id="dz-text">📷 Arrastra una foto aquí o haz clic para elegirla</div>
         <div class="dz-progress" id="dz-progress"></div>
         <input type="file" id="pm-file" accept="image/*">
       </div>
+      <label style="margin-top:10px;">o pega una URL de imagen</label>
+      <input type="text" id="pm-image" placeholder="https://...">
       <div class="img-preview" id="pm-preview">☕</div>
     </div>
     <div class="toggle-row">
@@ -630,6 +631,7 @@ function initApp(){
     prev.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'">` : fallback;
   }
   document.getElementById('pm-category').addEventListener('change', updateImgPreview);
+  document.getElementById('pm-image').addEventListener('input', updateImgPreview);
 
   // ---------- Arrastrar y soltar imagen ----------
   function compressImage(file){
