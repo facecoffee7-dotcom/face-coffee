@@ -69,6 +69,16 @@
     loyaltyDescription: 'Por cada pedido que hagas ganas 1 sello. Junta los sellos y canjea tu recompensa.',
     loyaltyStampsGoal: 10,
     loyaltyReward: 'Un café gratis',
+    themeBg: '#161009', themeBgAlt: '#1d1610', themeCard: '#241b13',
+    themeGold: '#c8a355', themeGoldBright: '#e6cb8a', themeCream: '#f4ead6',
+    slangChallengeIndex: 0,
+    slangText: "Aquí somos puro Ecuador: entra tu pana, tu ñaño, tu guambra o tu guagua — en esta caleta nadie cae de arrocero. Pide de una y verás qué full rica está la jama; aquí sabemos camellar desde temprano para curarte ese chuchaqui con un cafecito bacán, vacán, chévere y de ley. Si el día te salió salado, un man siempre dice 'ya fue' y armamos una y ya la mejor chamba de la cuadra. Chuta, así de simple: ¡bienvenido, pana!",
+    slangWords: ["pana","ñaño","guambra","guagua","caleta","arrocero","de una","full","jama","camellar","chuchaqui","bacán","vacán","chévere","de ley","salado","man","ya fue","una y ya","chamba","chuta"],
+    slangReward: 'Un combo gratis de tu bebida favorita',
+    slangStartDate: 0,
+    slangPeriodDays: 30,
+    slangWinners: [],
+    slangHistory: [],
   };
 
   let onSaveHook = null;
