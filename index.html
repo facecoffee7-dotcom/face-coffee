@@ -44,6 +44,33 @@
   .perk-btn:hover{border-color:var(--gold); color:var(--gold);}
   @media(max-width:820px){ .perk-btn span.perk-label{display:none;} .perk-btn{padding:9px 11px;} }
 
+  /* Botones grandes de Cupón / Fidelidad */
+  .promo-row{display:flex; gap:16px; flex-wrap:wrap; margin:34px auto 6px;}
+  .promo-card{
+    flex:1 1 260px; display:flex; align-items:center; gap:16px; text-align:left;
+    background:var(--card); border:1px solid var(--line-strong); border-radius:8px;
+    padding:20px 22px; transition:border-color .2s ease, transform .2s ease;
+  }
+  .promo-card:hover{border-color:var(--gold); transform:translateY(-2px);}
+  .promo-icon{font-size:34px; line-height:1;}
+  .promo-text b{display:block; color:var(--gold); font-size:16px; font-family:'Fraunces',serif; font-weight:500;}
+  .promo-text span{font-size:12.5px; color:var(--cream-dim);}
+
+  /* Sección reto de jerga ecuatoriana */
+  .jerga-section{padding:70px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--bg-alt);}
+  .jerga-inner{max-width:720px; margin:0 auto; text-align:center;}
+  .jerga-text{
+    font-size:16px; line-height:1.75; color:var(--cream); margin:18px 0 24px;
+    background:var(--card); border:1px solid var(--line-strong); border-radius:8px; padding:24px;
+  }
+  .jerga-meta{display:flex; justify-content:center; gap:22px; flex-wrap:wrap; font-size:12.5px; color:var(--cream-faint); margin-bottom:20px;}
+  .jerga-meta b{color:var(--gold);}
+  .jerga-winners{margin-top:26px; padding-top:22px; border-top:1px solid var(--line);}
+  .jerga-winners h4{font-size:13px; color:var(--gold-bright); margin-bottom:10px; font-family:'Space Mono',monospace; letter-spacing:0.05em;}
+  .jerga-winners ol{list-style:none; display:flex; flex-direction:column; gap:6px; max-width:320px; margin:0 auto;}
+  .jerga-winners li{background:var(--card); border-radius:4px; padding:8px 14px; font-size:13.5px; display:flex; justify-content:space-between;}
+  .jerga-winners li b{color:var(--gold);}
+
   /* MODALES (cupón / fidelidad) */
   .fc-modal-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:none;
@@ -161,7 +188,7 @@
   .p-card{background:var(--card); padding:20px; display:flex; flex-direction:column; gap:10px; transition:background .2s ease;}
   .p-card:hover{background:var(--card-hover);}
   .p-img{
-    width:100%; aspect-ratio:4/3; border-radius:3px; background:linear-gradient(150deg, rgba(200,163,85,0.18), rgba(0,0,0,0.2));
+    width:100%; aspect-ratio:1/1; border-radius:3px; background:linear-gradient(150deg, rgba(200,163,85,0.18), rgba(0,0,0,0.2));
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .p-img img{width:100%; height:100%; object-fit:cover;}
@@ -259,8 +286,6 @@
       <input type="text" id="search-input" placeholder="Buscar en el menú...">
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <button class="perk-btn" id="coupon-btn">🎟 <span class="perk-label">Cupón</span></button>
-      <button class="perk-btn" id="loyalty-btn">⭐ <span class="perk-label">Fidelidad</span></button>
       <button class="cart-btn" id="cart-toggle">
         🛒 Pedido <span class="cart-count mono" id="cart-count">0</span>
       </button>
@@ -276,34 +301,38 @@
     <p id="hero-sub">Arma tu pedido y confírmalo por WhatsApp en menos de un minuto.</p>
     <div class="hero-cta">
       <button class="btn btn-primary" onclick="document.getElementById('cat-pal-calor')?.scrollIntoView({behavior:'smooth'})">Ver el menú</button>
-      <a class="btn btn-ghost" href="#historia">Nuestra finca →</a>
+      <a class="btn btn-ghost" href="#jerga">Reto de jerga 🇪🇨</a>
     </div>
   </div>
   <div class="scroll-cue"><span>Scroll</span><span class="dot"></span></div>
 </section>
 
-<section class="story" id="historia">
-  <div class="wrap story-grid">
-    <div class="story-visual reveal">
-      <div class="elevation-card">
-        <span class="elevation-label mono">PERFIL DE ALTITUD</span>
-        <svg viewBox="0 0 320 150" class="elev-svg">
-          <line x1="0" y1="30" x2="320" y2="30" stroke="var(--cream-faint)" stroke-width="1" stroke-dasharray="3 5"/>
-          <path d="M0,115 C70,115 70,115 115,113 C170,111 190,132 230,134 C260,136 290,134 320,132" stroke="var(--gold)" stroke-width="2" fill="none" class="elev-path"/>
-          <circle cx="230" cy="134" r="4" fill="var(--gold-bright)"/>
-        </svg>
-        <div class="elev-caption mono"><span>0 msnm</span><span class="highlight">220 msnm</span><span>2.000 msnm</span></div>
-      </div>
+<div class="wrap">
+  <div class="promo-row">
+    <button class="promo-card" id="coupon-btn">
+      <span class="promo-icon">🎟</span>
+      <span class="promo-text"><b>Cupón de descuento</b><span>Toca para usar tu código</span></span>
+    </button>
+    <button class="promo-card" id="loyalty-btn">
+      <span class="promo-icon">⭐</span>
+      <span class="promo-text"><b>Programa de fidelidad</b><span>Junta sellos y gana</span></span>
+    </button>
+  </div>
+</div>
+
+<section class="jerga-section" id="jerga">
+  <div class="jerga-inner">
+    <div class="eyebrow reveal" style="justify-content:center;">RETO ECUATORIANO 🇪🇨</div>
+    <h2 class="reveal">Puro Ecuador, puro sabor</h2>
+    <p class="jerga-text reveal" id="jerga-text"></p>
+    <div class="jerga-meta reveal">
+      <span>🏆 Premio: <b id="jerga-reward"></b></span>
+      <span>⏳ <b id="jerga-days-left"></b></span>
     </div>
-    <div class="story-copy">
-      <div class="eyebrow reveal" id="story-eyebrow">NUESTRA FINCA</div>
-      <h2 class="reveal" id="story-title">Lo que la altura no da,<br>lo da el proceso.</h2>
-      <p class="reveal" id="story-text">Cultivamos Ecurobusta en La Maná, a apenas 220 metros sobre el nivel del mar. En vez de competir con la altura, competimos con el proceso post-cosecha: fermentación controlada, secado lento y selección manual, grano por grano.</p>
-      <div class="story-stats reveal">
-        <div class="stat"><b data-count="220" id="story-stat1-value">0</b><span id="story-stat1-label">MSNM DE FINCA</span></div>
-        <div class="stat"><b data-count="100" id="story-stat2-value">0</b><span id="story-stat2-label">% ECUROBUSTA</span></div>
-        <div class="stat"><b data-count="0" id="story-stat3-value">0</b><span id="story-stat3-label">INTERMEDIARIOS</span></div>
-      </div>
+    <button class="btn btn-primary reveal" id="jerga-cta">Ya encontré las 21 jergas →</button>
+    <div class="jerga-winners reveal" id="jerga-winners-wrap" style="display:none;">
+      <h4>GANADORES DE ESTE MES</h4>
+      <ol id="jerga-winners"></ol>
     </div>
   </div>
 </section>
@@ -332,9 +361,13 @@
       <div class="drawer-total" style="color:var(--green); font-size:13px;"><span id="coupon-applied-label">Cupón aplicado</span><span class="mono" id="coupon-applied-amount">−$0.00</span></div>
     </div>
     <div class="drawer-total"><span>Total</span><b class="mono" id="drawer-total">$0.00</b></div>
-    <div class="field" style="margin-bottom:12px;">
+    <div class="field" style="margin-bottom:10px;">
+      <input type="text" id="cart-name" placeholder="Tu nombre (obligatorio)" required>
+    </div>
+    <div class="field" style="margin-bottom:8px;">
       <input type="tel" id="cart-phone" placeholder="Tu WhatsApp (opcional, para sumar sellos)">
     </div>
+    <div class="fc-msg err" id="checkout-error" style="margin-bottom:8px;"></div>
     <button class="btn btn-primary" id="checkout-btn">Pedir por WhatsApp →</button>
     <div class="wa-note" id="wa-note" style="display:none;">Configura el número de WhatsApp en el panel administrativo.</div>
   </div>
@@ -390,6 +423,41 @@ async function boot(){
   let appliedCoupon = null; // {code, type, value}
   let cart = JSON.parse(sessionStorage.getItem('fc_cart') || '{}'); // {productId: qty}
 
+  function applyTheme(s){
+    const root = document.documentElement.style;
+    if(s.themeBg) root.setProperty('--bg', s.themeBg);
+    if(s.themeBgAlt) root.setProperty('--bg-alt', s.themeBgAlt);
+    if(s.themeCard) root.setProperty('--card', s.themeCard);
+    if(s.themeGold) root.setProperty('--gold', s.themeGold);
+    if(s.themeGoldBright) root.setProperty('--gold-bright', s.themeGoldBright);
+    if(s.themeCream) root.setProperty('--cream', s.themeCream);
+  }
+  applyTheme(settings);
+
+  function renderJerga(){
+    document.getElementById('jerga-text').textContent = settings.slangText || '';
+    document.getElementById('jerga-reward').textContent = settings.slangReward || '';
+    const start = settings.slangStartDate || Date.now();
+    const periodMs = (settings.slangPeriodDays || 30) * 24*60*60*1000;
+    const daysLeft = Math.max(0, Math.ceil((start + periodMs - Date.now()) / (24*60*60*1000)));
+    document.getElementById('jerga-days-left').textContent = daysLeft <= 1 ? '¡Último día!' : `Quedan ${daysLeft} días`;
+    const winners = settings.slangWinners || [];
+    const wrap = document.getElementById('jerga-winners-wrap');
+    const list = document.getElementById('jerga-winners');
+    if(winners.length){
+      wrap.style.display = 'block';
+      list.innerHTML = winners.map((w,i)=>`<li><span>${i+1}° lugar</span><b>${w.name}</b></li>`).join('');
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+  renderJerga();
+  document.getElementById('jerga-cta').addEventListener('click', ()=>{
+    const phone = settings.whatsapp || '';
+    const msg = `¡Hola! 🇪🇨 Ya encontré las 21 jergas ecuatorianas del reto de ${settings.businessName}. Aquí mi lista:\n\n1. \n2. \n3. \n...`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  });
+
   document.getElementById('tagline-mini').textContent = settings.address;
   // Divide el tagline en 1-2 líneas con animación de entrada tipo Apple
   (function setHeroTitle(){
@@ -402,17 +470,6 @@ async function boot(){
   })();
   document.getElementById('footer-info').textContent =
     `${settings.businessName} · ${settings.address} · ${settings.hours} · ${settings.instagram}`;
-
-  // Sección "Nuestra finca" — editable desde el admin (Configuración)
-  document.getElementById('story-eyebrow').textContent = settings.storyEyebrow || '';
-  document.getElementById('story-title').innerHTML = (settings.storyTitle || '').split('\n').join('<br>');
-  document.getElementById('story-text').textContent = settings.storyText || '';
-  document.getElementById('story-stat1-value').dataset.count = settings.storyStat1Value ?? 0;
-  document.getElementById('story-stat1-label').textContent = settings.storyStat1Label || '';
-  document.getElementById('story-stat2-value').dataset.count = settings.storyStat2Value ?? 0;
-  document.getElementById('story-stat2-label').textContent = settings.storyStat2Label || '';
-  document.getElementById('story-stat3-value').dataset.count = settings.storyStat3Value ?? 0;
-  document.getElementById('story-stat3-label').textContent = settings.storyStat3Label || '';
 
   // --- Parallax + reveal-on-scroll (estilo Apple) ---
   requestAnimationFrame(()=> document.getElementById('hero').classList.add('loaded'));
@@ -615,6 +672,14 @@ async function boot(){
   document.getElementById('checkout-btn').addEventListener('click', ()=>{
     const items = Object.entries(cart).filter(([,qty])=>qty>0);
     if(items.length===0) return;
+    const errEl = document.getElementById('checkout-error');
+    const customerName = document.getElementById('cart-name').value.trim();
+    if(!customerName){
+      errEl.textContent = 'Escribe tu nombre para continuar con el pedido.';
+      document.getElementById('cart-name').focus();
+      return;
+    }
+    errEl.textContent = '';
     let subtotal = 0;
     const lineItems = [];
     items.forEach(([id,qty])=>{
@@ -628,7 +693,7 @@ async function boot(){
     const total = Math.max(0, subtotal - discount);
     const customerPhone = document.getElementById('cart-phone').value.trim().replace(/\D/g,'');
 
-    let msg = `Hola *${settings.businessName}* 👋, quiero hacer este pedido:\n\n`;
+    let msg = `Hola *${settings.businessName}* 👋, soy *${customerName}* y quiero hacer este pedido:\n\n`;
     lineItems.forEach(it=>{ msg += `• ${it.qty}x ${it.name} — ${money(it.price*it.qty)}\n`; });
     if(appliedCoupon && discount>0) msg += `\nCupón ${appliedCoupon.code}: −${money(discount)}`;
     msg += `\n*Total: ${money(total)}*`;
@@ -639,7 +704,7 @@ async function boot(){
     // Registra el pedido para el panel de Cocina/Caja del admin (si Firebase está activo)
     if (window.FCOrders) {
       window.FCOrders.createOrder({
-        items: lineItems, subtotal,
+        items: lineItems, subtotal, name: customerName,
         discount, couponCode: appliedCoupon ? appliedCoupon.code : null,
         total, phone: customerPhone || null,
       }).catch(()=>{});
@@ -716,6 +781,8 @@ async function boot(){
     if(e.detail && e.detail.changed){
       data = FCData.loadData();
       settings = FCData.loadSettings();
+      applyTheme(settings);
+      renderJerga();
       renderMenu(document.getElementById('search-input').value);
       renderCart();
     }
