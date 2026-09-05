@@ -108,6 +108,16 @@
   .modal-actions{display:flex; justify-content:space-between; margin-top:22px; gap:10px;}
   .modal-actions .left{display:flex; gap:10px;}
 
+  .op-cat{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--cream-faint); padding:10px 8px 4px;}
+  .op-row{display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:4px;}
+  .op-row:hover{background:var(--card-hover);}
+  .op-row .op-name{flex:1; font-size:13.5px;}
+  .op-row .op-price{font-family:'Space Mono',monospace; font-size:12px; color:var(--cream-faint); margin-right:6px;}
+  .qty-ctrl{display:flex; align-items:center; gap:8px;}
+  .qty-ctrl button{background:var(--card); border:1px solid var(--line-strong); color:var(--cream); width:24px; height:24px; border-radius:50%; font-size:14px; line-height:1;}
+  .qty-ctrl button:hover{border-color:var(--gold);}
+  .qty-ctrl span{font-family:'Space Mono',monospace; font-size:13px; min-width:16px; text-align:center; display:inline-block;}
+
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
     background:var(--gold); color:var(--bg); padding:10px 20px; border-radius:999px; font-size:13px; font-weight:600;
@@ -310,7 +320,10 @@
 </section>
 
 <section id="tab-kitchen" class="tab-panel" hidden>
-  <div class="toolbar"><div><h1>Cocina</h1><div class="sub">Pedidos en tiempo real hechos desde el sitio público.</div></div></div>
+  <div class="toolbar">
+    <div><h1>Cocina</h1><div class="sub">Pedidos en tiempo real hechos desde el sitio público.</div></div>
+    <button class="btn btn-primary" id="new-order-btn">+ Nuevo pedido</button>
+  </div>
   <div class="board" id="kitchen-board">
     <div class="column" style="width:100%;"><div class="col-body">Requiere Firebase configurado para recibir pedidos aquí.</div></div>
   </div>
@@ -437,6 +450,38 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" id="cm-cancel">Cancelar</button>
       <button class="btn btn-primary" id="cm-save">Crear categoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO PEDIDO (walk-in / mostrador) -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" style="max-width:560px;">
+    <h3>Nuevo pedido de mostrador</h3>
+    <div class="sub" style="margin-top:-10px; margin-bottom:16px;">Para clientes que piden directo en el local, no por la web.</div>
+    <div class="field field-row">
+      <div>
+        <label>Nombre del cliente (opcional)</label>
+        <input type="text" id="om-name" placeholder="Cliente en local">
+      </div>
+      <div>
+        <label>WhatsApp (opcional, para sellos)</label>
+        <input type="tel" id="om-phone" placeholder="09XXXXXXXX">
+      </div>
+    </div>
+    <div class="field">
+      <input type="text" id="om-search" placeholder="Buscar producto...">
+    </div>
+    <div id="om-product-list" style="max-height:280px; overflow-y:auto; border:1px solid var(--line); border-radius:6px; padding:4px;"></div>
+    <div class="modal-actions" style="align-items:center;">
+      <div class="left" style="flex-direction:column; align-items:flex-start; gap:2px;">
+        <span class="sub" style="margin:0;">Total</span>
+        <b class="mono" id="om-total" style="font-size:18px; color:var(--gold);">$0.00</b>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" id="om-cancel">Cancelar</button>
+        <button class="btn btn-primary" id="om-save" disabled>Crear pedido</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1017,6 +1062,115 @@ function initApp(){
   } else {
     renderCash();
   }
+
+  // ---------- NUEVO PEDIDO DE MOSTRADOR (walk-in, sin pasar por la web) ----------
+  const orderModal = document.getElementById('order-modal');
+  const omList = document.getElementById('om-product-list');
+  const omTotalEl = document.getElementById('om-total');
+  const omSaveBtn = document.getElementById('om-save');
+  let omQty = {}; // { productId: cantidad }
+
+  function omMoney(n){ return '$' + Number(n||0).toFixed(2); }
+
+  function omRenderList(filter){
+    const f = (filter||'').trim().toLowerCase();
+    const cats = [...data.categories].filter(c=>c.active).sort((a,b)=>a.order-b.order);
+    omList.innerHTML = '';
+    let any = false;
+    cats.forEach(cat=>{
+      let prods = data.products.filter(p=>p.categoryId===cat.id && p.active).sort((a,b)=>a.order-b.order);
+      if(f) prods = prods.filter(p=>p.name.toLowerCase().includes(f));
+      if(prods.length===0) return;
+      any = true;
+      const catEl = document.createElement('div');
+      catEl.className = 'op-cat';
+      catEl.textContent = cat.icon + ' ' + cat.name;
+      omList.appendChild(catEl);
+      prods.forEach(p=>{
+        const qty = omQty[p.id] || 0;
+        const row = document.createElement('div');
+        row.className = 'op-row';
+        row.innerHTML = `
+          <span class="op-name">${p.name}</span>
+          <span class="op-price mono">${omMoney(p.price)}</span>
+          <div class="qty-ctrl">
+            <button type="button" data-dec="${p.id}">−</button>
+            <span>${qty}</span>
+            <button type="button" data-inc="${p.id}">+</button>
+          </div>
+        `;
+        omList.appendChild(row);
+      });
+    });
+    if(!any) omList.innerHTML = '<div class="sub" style="padding:14px;">No hay productos activos que coincidan.</div>';
+    omList.querySelectorAll('[data-inc]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ omQty[btn.dataset.inc] = (omQty[btn.dataset.inc]||0) + 1; omRenderList(document.getElementById('om-search').value); omUpdateTotal(); });
+    });
+    omList.querySelectorAll('[data-dec]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.dec;
+        omQty[id] = Math.max(0, (omQty[id]||0) - 1);
+        if(omQty[id]===0) delete omQty[id];
+        omRenderList(document.getElementById('om-search').value);
+        omUpdateTotal();
+      });
+    });
+  }
+
+  function omUpdateTotal(){
+    let total = 0, count = 0;
+    Object.entries(omQty).forEach(([id, qty])=>{
+      const p = data.products.find(p=>p.id===id);
+      if(p){ total += p.price * qty; count += qty; }
+    });
+    omTotalEl.textContent = omMoney(total);
+    omSaveBtn.disabled = count === 0;
+    return total;
+  }
+
+  document.getElementById('new-order-btn').addEventListener('click', ()=>{
+    if(!window.FCOrders || !window.FCCore || !window.FCCore.isConfigured()){
+      toast('Requiere Firebase configurado para registrar pedidos.');
+      return;
+    }
+    omQty = {};
+    document.getElementById('om-name').value = '';
+    document.getElementById('om-phone').value = '';
+    document.getElementById('om-search').value = '';
+    omRenderList('');
+    omUpdateTotal();
+    orderModal.classList.add('open');
+  });
+  document.getElementById('om-cancel').addEventListener('click', ()=> orderModal.classList.remove('open'));
+  orderModal.addEventListener('click', (e)=>{ if(e.target===orderModal) orderModal.classList.remove('open'); });
+  document.getElementById('om-search').addEventListener('input', (e)=> omRenderList(e.target.value));
+
+  omSaveBtn.addEventListener('click', async ()=>{
+    const items = Object.entries(omQty).map(([id, qty])=>{
+      const p = data.products.find(p=>p.id===id);
+      return p ? { id, name:p.name, qty, price:p.price } : null;
+    }).filter(Boolean);
+    if(items.length===0) return;
+    const total = omUpdateTotal();
+    const name = document.getElementById('om-name').value.trim() || 'Cliente en local';
+    const phone = document.getElementById('om-phone').value.trim().replace(/\D/g,'') || null;
+    omSaveBtn.disabled = true;
+    try{
+      await window.FCOrders.createOrder({
+        items, subtotal: total, discount: 0, couponCode: null,
+        total, name, phone, source: 'admin',
+      });
+      if(phone) window.FCOrders.addStamp(phone).catch(()=>{});
+      orderModal.classList.remove('open');
+      toast('Pedido creado — ya aparece en Cocina');
+      document.querySelector('.tab-btn[data-tab="tab-kitchen"]').click();
+    }catch(e){
+      console.error(e);
+      toast('No se pudo crear el pedido');
+    }finally{
+      omSaveBtn.disabled = false;
+    }
+  });
 
   // ---------- APARIENCIA ----------
   const THEME_DEFAULTS = {
